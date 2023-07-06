@@ -92,23 +92,29 @@ class Config:
         return x_pad, x_query, x_center, x_max
 
 
-f0up_key = sys.argv[1]
-input_path = sys.argv[2]
-index_path = sys.argv[3]
-f0method = sys.argv[4]  # harvest or pm
-opt_path = sys.argv[5]
-model_path = sys.argv[6]
-index_rate = float(sys.argv[7])
-device = sys.argv[8]
-is_half = sys.argv[9].lower() != "false"
-filter_radius = int(sys.argv[10])
-resample_sr = int(sys.argv[11])
-rms_mix_rate = float(sys.argv[12])
-protect = float(sys.argv[13])
-print(sys.argv)
-config = Config(device, is_half)
-now_dir = os.getcwd()
-sys.path.append(now_dir)
+if __name__ == "__main__":
+    f0up_key = sys.argv[1]
+    input_path = sys.argv[2]
+    index_path = sys.argv[3]
+    f0method = sys.argv[4]  # harvest or pm
+    opt_path = sys.argv[5]
+    model_path = sys.argv[6]
+    index_rate = float(sys.argv[7])
+    device = sys.argv[8]
+    is_half = sys.argv[9].lower() != "false"
+    filter_radius = int(sys.argv[10])
+    resample_sr = int(sys.argv[11])
+    rms_mix_rate = float(sys.argv[12])
+    protect = float(sys.argv[13])
+    print(sys.argv)
+    config = Config(device, is_half)
+
+# now_dir = os.getcwd()
+# sys.path.append(now_dir)
+
+package_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(package_dir)
+
 from vc_infer_pipeline import VC
 from lib.infer_pack.models import (
     SynthesizerTrnMs256NSFsid,
@@ -203,13 +209,14 @@ def get_vc(model_path):
     # return {"visible": True,"maximum": n_spk, "__type__": "update"}
 
 
-get_vc(model_path)
-audios = os.listdir(input_path)
-for file in tq.tqdm(audios):
-    if file.endswith(".wav"):
-        file_path = input_path + "/" + file
-        wav_opt = vc_single(
-            0, file_path, f0up_key, None, f0method, index_path, index_rate
-        )
-        out_path = opt_path + "/" + file
-        wavfile.write(out_path, tgt_sr, wav_opt)
+if __name__ == "__main__":
+    get_vc(model_path)
+    audios = os.listdir(input_path)
+    for file in tq.tqdm(audios):
+        if file.endswith(".wav"):
+            file_path = input_path + "/" + file
+            wav_opt = vc_single(
+                0, file_path, f0up_key, None, f0method, index_path, index_rate
+            )
+            out_path = opt_path + "/" + file
+            wavfile.write(out_path, tgt_sr, wav_opt)
