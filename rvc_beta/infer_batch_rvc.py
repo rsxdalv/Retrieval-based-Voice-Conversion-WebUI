@@ -6,12 +6,15 @@ runtime\python.exe myinfer-v2-0528.py 0 "E:\codes\py39\RVC-beta\todo-songs" "E:\
 """
 import os, sys, pdb, torch
 
-now_dir = os.getcwd()
-sys.path.append(now_dir)
 import sys
 import torch
 import tqdm as tq
 from multiprocessing import cpu_count
+
+base_path = os.path.dirname(os.path.abspath(__file__))
+
+def open_relative(file, mode):
+    return open(os.path.join(base_path, file), mode)
 
 
 class Config:
@@ -37,13 +40,13 @@ class Config:
                 print("16系/10系显卡和P40强制单精度")
                 self.is_half = False
                 for config_file in ["32k.json", "40k.json", "48k.json"]:
-                    with open(f"configs/{config_file}", "r") as f:
+                    with open_relative(os.path.join("configs", config_file), "r") as f:
                         strr = f.read().replace("true", "false")
-                    with open(f"configs/{config_file}", "w") as f:
+                    with open_relative(os.path.join("configs", config_file), "w") as f:
                         f.write(strr)
-                with open("trainset_preprocess_pipeline_print.py", "r") as f:
+                with open_relative("trainset_preprocess_pipeline_print.py", "r") as f:
                     strr = f.read().replace("3.7", "3.0")
-                with open("trainset_preprocess_pipeline_print.py", "w") as f:
+                with open_relative("trainset_preprocess_pipeline_print.py", "w") as f:
                     f.write(strr)
             else:
                 self.gpu_name = None
@@ -55,9 +58,9 @@ class Config:
                 + 0.4
             )
             if self.gpu_mem <= 4:
-                with open("trainset_preprocess_pipeline_print.py", "r") as f:
+                with open_relative("trainset_preprocess_pipeline_print.py", "r") as f:
                     strr = f.read().replace("3.7", "3.0")
-                with open("trainset_preprocess_pipeline_print.py", "w") as f:
+                with open_relative("trainset_preprocess_pipeline_print.py", "w") as f:
                     f.write(strr)
         elif torch.backends.mps.is_available():
             print("没有发现支持的N卡, 使用MPS进行推理")
@@ -109,20 +112,14 @@ if __name__ == "__main__":
     print(sys.argv)
     config = Config(device, is_half)
 
-# now_dir = os.getcwd()
-# sys.path.append(now_dir)
-
-package_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(package_dir)
-
-from vc_infer_pipeline import VC
-from lib.infer_pack.models import (
+from .vc_infer_pipeline import VC
+from .lib.infer_pack.models import (
     SynthesizerTrnMs256NSFsid,
     SynthesizerTrnMs256NSFsid_nono,
     SynthesizerTrnMs768NSFsid,
     SynthesizerTrnMs768NSFsid_nono,
 )
-from my_utils import load_audio
+from .my_utils import load_audio
 from fairseq import checkpoint_utils
 from scipy.io import wavfile
 
@@ -209,7 +206,15 @@ def get_vc(model_path):
     # return {"visible": True,"maximum": n_spk, "__type__": "update"}
 
 
-if __name__ == "__main__":
+def infer_batch_rvc(
+    f0up_key,
+    input_path,
+    index_path,
+    f0method,
+    opt_path,
+    model_path,
+    index_rate,
+):
     get_vc(model_path)
     audios = os.listdir(input_path)
     for file in tq.tqdm(audios):
@@ -220,3 +225,34 @@ if __name__ == "__main__":
             )
             out_path = opt_path + "/" + file
             wavfile.write(out_path, tgt_sr, wav_opt)
+
+if __name__ == "__main__":
+    infer_batch_rvc(
+        f0up_key,
+        input_path,
+        index_path,
+        f0method,
+        opt_path,
+        model_path,
+        index_rate,
+    )
+
+def set_params_temp(
+    _device,
+    _is_half,
+    _filter_radius,
+    _resample_sr,
+    _rms_mix_rate,
+    _protect,
+):
+    global device, is_half, filter_radius, resample_sr, rms_mix_rate, protect, config
+    device = _device
+    is_half = _is_half
+    filter_radius = _filter_radius
+    resample_sr = _resample_sr
+    rms_mix_rate = _rms_mix_rate
+    protect = _protect
+    #
+    global config
+    config = Config(device, is_half)
+    
