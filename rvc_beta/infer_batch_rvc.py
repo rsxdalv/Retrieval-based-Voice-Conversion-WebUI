@@ -112,6 +112,7 @@ if __name__ == "__main__":
     print(sys.argv)
     config = Config(device, is_half)
 
+sys.path.append(base_path)
 from .vc_infer_pipeline import VC
 from .lib.infer_pack.models import (
     SynthesizerTrnMs256NSFsid,
@@ -122,6 +123,7 @@ from .lib.infer_pack.models import (
 from .my_utils import load_audio
 from fairseq import checkpoint_utils
 from scipy.io import wavfile
+sys.path.remove(base_path)
 
 hubert_model = None
 
@@ -219,11 +221,11 @@ def infer_batch_rvc(
     audios = os.listdir(input_path)
     for file in tq.tqdm(audios):
         if file.endswith(".wav"):
-            file_path = input_path + "/" + file
+            file_path = os.path.join(input_path, file)
             wav_opt = vc_single(
                 0, file_path, f0up_key, None, f0method, index_path, index_rate
             )
-            out_path = opt_path + "/" + file
+            out_path = os.path.join(opt_path, file)
             wavfile.write(out_path, tgt_sr, wav_opt)
 
 if __name__ == "__main__":
