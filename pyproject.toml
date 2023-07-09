@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rvc-beta"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["lj1995"]
 license = "MIT"
