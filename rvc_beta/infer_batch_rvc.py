@@ -128,10 +128,10 @@ sys.path.remove(base_path)
 hubert_model = None
 
 
-def load_hubert():
+def load_hubert(hubert_model_path="hubert_base.pt"):
     global hubert_model
     models, saved_cfg, task = checkpoint_utils.load_model_ensemble_and_task(
-        ["hubert_base.pt"],
+        [hubert_model_path],
         suffix="",
     )
     hubert_model = models[0]
